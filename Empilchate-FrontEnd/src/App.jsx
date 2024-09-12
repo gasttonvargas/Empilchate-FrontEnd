@@ -4,6 +4,7 @@ import AuthTestPage from './pages/AuthTestPage'
 import Register from './components/auth/Register'
 import Login from './components/auth/Login'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import Products from './pages/admin/Products'
 
 function App() {
   return (
@@ -17,11 +18,15 @@ function App() {
             <li>
               <Link to="/auth-test">Auth Test</Link>
             </li>
+            <li>
+              <Link to="/products">Productos</Link>
+            </li>
           </ul>
         </nav>
 
         <Routes>
           <Route path="/auth-test" element={<AuthTestPage />} />
+          <Route path="/products" element={<Products />} />
           <Route path="/" element={
             <>
               <h1>Bienvenido a mi App de Autenticación</h1>
@@ -39,4 +44,4 @@ function App() {
   )
 }
 
-export default App
+export default App;
