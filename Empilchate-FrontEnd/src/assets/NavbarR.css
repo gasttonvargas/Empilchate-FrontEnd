@@ -1,0 +1,176 @@
+.navbar-custom {
+    background-color: #1e1e2b;
+  }
+  
+  .navbar-logo {
+    height: 40px;
+  }
+  
+  .nav-button, .dropdown-toggle {
+    font-size: 17px;
+    background: transparent;
+    border: none;
+    padding: 1em 1.5em;
+    color: #ffedd3 !important;
+    text-transform: uppercase;
+    position: relative;
+    transition: 0.5s ease;
+    cursor: pointer;
+    display: inline-block;
+    margin: 0 16px;
+  }
+  
+  .nav-button::after, .dropdown-toggle::after {
+    display: none !important;
+  }
+  
+  .nav-button::before, .dropdown-toggle::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background-color: #ffc506;
+    transition: 0.5s ease;
+  }
+  
+  .nav-button:hover::before, .dropdown-toggle:hover::before {
+    width: 100%;
+  }
+  
+  .nav-button:hover, .dropdown-toggle:hover {
+    color: #ffc506 !important;
+  }
+  
+  .dropdown-menu {
+    background-color: #1e1e2b;
+    border: none;
+    margin-top: 0;
+  }
+  
+  .dropdown-item {
+    color: #ffedd3;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #ffc506;
+    color: #1e1e2b;
+  }
+  
+  /* barra de búsqueda */
+  .search-form {
+    max-width: 200px;
+  }
+  
+  .search-input {
+    font-size: 14px;
+    height: 30px;
+    padding: 5px 10px;
+  }
+  
+  .search-button {
+    font-size: 14px;
+    padding: 2px 8px;
+    height: 30px;
+  }
+  
+  /* Estilos responsivos */
+  @media (max-width: 991px) {
+    .navbar-custom .navbar-collapse {
+      background-color: #1e1e2b;
+      padding: 1rem;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+  
+    .nav-button,
+    .dropdown-toggle {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 0.5em 1em;
+    }
+  
+    .nav-text {
+      margin-left: 10px;
+    }
+  
+    .navbar-nav {
+      align-items: flex-start;
+    }
+  
+    .dropdown-menu {
+      width: 100%;
+    }
+  
+    .search-form {
+      max-width: 150px;
+    }
+  }
+  
+  /* Estilos para el modal del carrito */
+  .cart-modal .modal-content {
+    background-color: #121212; /* Color de fondo oscuro */
+    color: #e0e0e0; /* Color de texto claro */
+    border-radius: 10px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    border: none;
+  }
+  
+  .cart-modal-header {
+    border-bottom: 1px solid #444; /* Línea de separación */
+    background: linear-gradient(135deg, #1e1e2b, #2a2a2a);
+  }
+  
+  .cart-modal-header .modal-title {
+    color: #ffc506; /* Color amarillo para el título */
+    font-weight: bold;
+    font-size: 24px; /* Tamaño de fuente más grande */
+  }
+  
+  .cart-modal-body {
+    padding: 20px;
+    font-size: 18px;
+    text-align: center; /* Centrar el texto */
+  }
+  
+  .cart-modal-footer {
+    border-top: 1px solid #444; /* Línea de separación */
+    background: linear-gradient(135deg, #1e1e2b, #2a2a2a);
+  }
+  
+  .cart-modal-footer .btn-outline-secondary {
+    color: #ffedd3; /* Color claro para el botón de cerrar */
+    border-color: #ffedd3; /* Borde claro */
+    transition: background-color 0.3s, color 0.3s; /* Transición suave */
+  }
+  
+  .cart-modal-footer .btn-outline-secondary:hover {
+    background-color: #ffedd3; /* Color de fondo al pasar el mouse */
+    color: #1e1e2b; /* Color de texto oscuro */
+  }
+  
+  .cart-modal-footer .btn-primary {
+    background-color: #ffc506; /* Color amarillo para el botón de iniciar sesión */
+    border-color: #ffc506; /* Borde amarillo */
+    color: #1e1e2b; /* Color de texto oscuro */
+    transition: background-color 0.3s, border-color 0.3s; /* Transición suave */
+  }
+  
+  .cart-modal-footer .btn-primary:hover {
+    background-color: #e0ac00; /* Color de fondo al pasar el mouse */
+    border-color: #e0ac00; /* Color de borde al pasar el mouse */
+  }
+  
+  /* Animación para el modal */
+  .modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+  }
+  
+  .modal.show .modal-dialog {
+    transform: none;
+  }

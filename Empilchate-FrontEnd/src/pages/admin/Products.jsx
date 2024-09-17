@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Table, Button, Form, Modal, Image, Spinner, Toast, ToastContainer } from 'react-bootstrap';
 import { FaEdit, FaTrash, FaPlus, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const API_URL = 'https://proyectofinalrolling-backend-production.up.railway.app/api';
+// Configuración de Axios
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api', // Asegúrate de que esta URL es la correcta
+});
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -21,32 +25,21 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/products`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("Datos recibidos de la API:", data);
-      setProducts(Array.isArray(data) ? data : []);
-      setFilteredProducts(Array.isArray(data) ? data : []);
+      const response = await api.get('/products');
+      setProducts(response.data);
+      setFilteredProducts(response.data);
     } catch (error) {
-      console.error("Error fetching products:", error);
       showToastMessage(`Error al cargar los productos: ${error.message}`);
     }
   };
 
   const handlePublishToggle = async (product) => {
     try {
-      const response = await fetch(`${API_URL}/products/${product._id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isPublished: !product.isPublished })
-      });
-      if (!response.ok) throw new Error('Error al cambiar el estado de publicación');
+      await api.patch(`/products/${product._id}`, { isPublished: !product.isPublished });
       showToastMessage(`Producto ${product.isPublished ? 'despublicado' : 'publicado'} con éxito`);
       fetchProducts();
     } catch (error) {
-      showToastMessage("Error al cambiar el estado de publicación del producto");
+      showToastMessage(`Error al cambiar el estado de publicación del producto: ${error.message}`);
     }
   };
 
@@ -54,19 +47,17 @@ const Products = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const method = isEditing ? 'PUT' : 'POST';
-      const url = isEditing ? `${API_URL}/products/${currentProduct._id}` : `${API_URL}/products`;
-      const response = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentProduct)
-      });
-      if (!response.ok) throw new Error('Error al guardar el producto');
-      showToastMessage(isEditing ? "Producto actualizado con éxito" : "Producto agregado con éxito");
+      if (isEditing) {
+        await api.put(`/products/${currentProduct._id}`, currentProduct);
+        showToastMessage("Producto actualizado con éxito");
+      } else {
+        await api.post('/products', currentProduct);
+        showToastMessage("Producto agregado con éxito");
+      }
       fetchProducts();
       handleCloseModal();
     } catch (error) {
-      showToastMessage("Error al guardar el producto");
+      showToastMessage(`Error al guardar el producto: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -75,12 +66,11 @@ const Products = () => {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm("¿Estás seguro de que quieres eliminar este producto?")) {
       try {
-        const response = await fetch(`${API_URL}/products/${productId}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Error al eliminar el producto');
+        await api.delete(`/products/${productId}`);
         fetchProducts();
         showToastMessage("Producto eliminado con éxito");
       } catch (error) {
-        showToastMessage("Error al eliminar el producto");
+        showToastMessage(`Error al eliminar el producto: ${error.message}`);
       }
     }
   };
@@ -104,17 +94,13 @@ const Products = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setCurrentProduct({ ...currentProduct, [name]: value });
+    setCurrentProduct(prevState => ({ ...prevState, [name]: value }));
   };
 
   const handleCategoryFilterChange = (e) => {
     const selected = e.target.value;
     setSelectedCategory(selected);
-    if (selected === 'Todas') {
-      setFilteredProducts(products);
-    } else {
-      setFilteredProducts(products.filter(product => product.category === selected));
-    }
+    setFilteredProducts(selected === 'Todas' ? products : products.filter(product => product.category === selected));
   };
 
   const showToastMessage = (message) => {
@@ -123,16 +109,25 @@ const Products = () => {
   };
 
   return (
-    <div className="products-container">
-      <Button onClick={() => handleShowModal()} className="mb-3"><FaPlus /> Agregar Producto</Button>
-      <Form.Group controlId="categoryFilter" className="mb-3">
-        <Form.Label>Filtrar por categoría</Form.Label>
-        <Form.Control as="select" value={selectedCategory} onChange={handleCategoryFilterChange}>
+    <div className="products-admin">
+      <h2>Gestión de Productos</h2>
+      <Button variant="primary" onClick={() => handleShowModal()} className="mb-3">
+        <FaPlus /> Agregar Producto
+      </Button>
+      <Form.Group className="mb-3">
+        <Form.Label>Filtrar por categoría:</Form.Label>
+        <Form.Select onChange={handleCategoryFilterChange} value={selectedCategory}>
           <option value="Todas">Todas</option>
-          {/* Agrega aquí más opciones de categorías si es necesario */}
-        </Form.Control>
+          <option value="Buzos">Buzos</option>
+          <option value="Remerones">Remerones</option>
+          <option value="Remeras y Boxy">Remeras y Boxy</option>
+          <option value="Crop">Crop</option>
+          <option value="Camisas">Camisas</option>
+          <option value="Camperas">Camperas</option>
+          <option value="Pantalones">Pantalones</option>
+        </Form.Select>
       </Form.Group>
-      <Table striped bordered hover responsive>
+      <Table striped bordered hover>
         <thead>
           <tr>
             <th>ID</th>
@@ -145,32 +140,27 @@ const Products = () => {
           </tr>
         </thead>
         <tbody>
-          {Array.isArray(filteredProducts) && filteredProducts.length > 0 ? (
-            filteredProducts.map(product => (
-              <tr key={product._id}>
-                <td>{product._id}</td>
-                <td><Image src={product.image} thumbnail width={100} /></td>
-                <td>{product.name}</td>
-                <td>${product.price}</td>
-                <td>{product.category}</td>
-                <td>{product.isPublished ? 'Publicado' : 'No publicado'}</td>
-                <td>
-                  <Button variant="warning" onClick={() => handleShowModal(product)} className="me-2"><FaEdit /></Button>
-                  <Button variant="danger" onClick={() => handleDeleteProduct(product._id)} className="me-2"><FaTrash /></Button>
-                  <Button 
-                    variant={product.isPublished ? 'secondary' : 'success'} 
-                    onClick={() => handlePublishToggle(product)}
-                  >
-                    {product.isPublished ? <FaEyeSlash /> : <FaEye />}
-                  </Button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7">No hay productos disponibles</td>
+          {filteredProducts.map(product => (
+            <tr key={product._id}>
+              <td>{product._id}</td>
+              <td><Image src={product.image} alt={product.name} thumbnail width={50} height={50} /></td>
+              <td>{product.name}</td>
+              <td>${product.price}</td>
+              <td>{product.category}</td>
+              <td>{product.isPublished ? 'Publicado' : 'No publicado'}</td>
+              <td>
+                <Button variant="warning" onClick={() => handleShowModal(product)} className="me-2">
+                  <FaEdit />
+                </Button>
+                <Button variant="danger" onClick={() => handleDeleteProduct(product._id)} className="me-2">
+                  <FaTrash />
+                </Button>
+                <Button variant={product.isPublished ? "secondary" : "success"} onClick={() => handlePublishToggle(product)}>
+                  {product.isPublished ? <FaEyeSlash /> : <FaEye />}
+                </Button>
+              </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </Table>
 
@@ -180,48 +170,33 @@ const Products = () => {
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
-            <Form.Group controlId="formProductName" className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Nombre</Form.Label>
-              <Form.Control 
-                type="text" 
-                name="name" 
-                value={currentProduct.name} 
-                onChange={handleInputChange} 
-                required 
-              />
+              <Form.Control type="text" name="name" value={currentProduct.name} onChange={handleInputChange} required />
             </Form.Group>
-            <Form.Group controlId="formProductPrice" className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Precio</Form.Label>
-              <Form.Control 
-                type="number" 
-                name="price" 
-                value={currentProduct.price} 
-                onChange={handleInputChange} 
-                required 
-              />
+              <Form.Control type="number" name="price" value={currentProduct.price} onChange={handleInputChange} required />
             </Form.Group>
-            <Form.Group controlId="formProductImage" className="mb-3">
-              <Form.Label>Imagen URL</Form.Label>
-              <Form.Control 
-                type="url" 
-                name="image" 
-                value={currentProduct.image} 
-                onChange={handleInputChange} 
-                required 
-              />
+            <Form.Group className="mb-3">
+              <Form.Label>URL de la Imagen</Form.Label>
+              <Form.Control type="text" name="image" value={currentProduct.image} onChange={handleInputChange} required />
             </Form.Group>
-            <Form.Group controlId="formProductCategory" className="mb-3">
+            <Form.Group className="mb-3">
               <Form.Label>Categoría</Form.Label>
-              <Form.Control 
-                type="text" 
-                name="category" 
-                value={currentProduct.category} 
-                onChange={handleInputChange} 
-                required 
-              />
+              <Form.Select name="category" value={currentProduct.category} onChange={handleInputChange} required>
+                <option value="">Seleccione una categoría</option>
+                <option value="Buzos">Buzos</option>
+                <option value="Remerones">Remerones</option>
+                <option value="Remeras y Boxy">Remeras y Boxy</option>
+                <option value="Crop">Crop</option>
+                <option value="Camisas">Camisas</option>
+                <option value="Camperas">Camperas</option>
+                <option value="Pantalones">Pantalones</option>
+              </Form.Select>
             </Form.Group>
             <Button variant="primary" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <Spinner animation="border" size="sm" /> : 'Guardar'}
+              {isSubmitting ? <Spinner as="span" animation="border" size="sm" /> : isEditing ? 'Actualizar' : 'Agregar'}
             </Button>
           </Form>
         </Modal.Body>
